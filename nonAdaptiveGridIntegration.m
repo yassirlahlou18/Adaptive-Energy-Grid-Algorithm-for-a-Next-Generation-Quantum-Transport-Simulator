@@ -1,12 +1,31 @@
-function [n_approx, rel_error] = nonAdaptiveGridIntegration(f, Emin, Emax, NE, n_true)
-    DeltaE = (Emax - Emin) / NE; % Grid spacing
-    E_grid = Emin:DeltaE:Emax;
-    n_approx = 0;
-    for i = 1:length(E_grid)-1
-        E_mid = (E_grid(i) + E_grid(i+1))/2;
-        n_approx = n_approx + f(E_mid) * DeltaE;
-    end
+function [n_approx, rel_error] = nonAdaptiveGridIntegration(f, Emin, Emax, maxpoints, n_true)
+        
+    subIntervalLength = (Emax - Emin) / maxpoints;
 
-    % Calculate relative error
-    rel_error = abs(n_approx - n_true) / n_true;
+    % Initialize the integral
+    subIntervalIntegral =  zeros(size(maxpoints));
+
+    % Compute the integral over each subinterval
+    for i = 1:maxpoints
+        % Calculate the current subinterval endpoints
+        x0 = Emin + (i-1) * subIntervalLength;
+        x1 = Emin + i * subIntervalLength;
+ 
+
+        % % Evaluate the function at the endpoints of the subinterval
+        % f0 = f(x0);
+        % f1 = f(x1);
+
+        % Calculate the trapezoidal estimate for the subinterval
+        subIntervalIntegral(i) = trapezoidalRule(f, x0, x1);
+
+        % Sum up the estimates
+        
+    end
+    n_approx=sum(subIntervalIntegral, 'omitnan');
+   
+    rel_error=abs(n_approx-n_true)/n_true;
+
+
 end
+

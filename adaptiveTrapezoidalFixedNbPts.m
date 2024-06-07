@@ -1,25 +1,48 @@
-function totalRelativeError = adaptiveTrapezoidalFixedNbPts(f, Emin, Emax, maxPoints)
+function totalRelativeError = adaptiveTrapezoidalFixedNbPts(f, energyPoints, maxPoints)
 
-    subdivisions = [Emin, Emax];
+    subdivisions = energyPoints;
     trapezoidalEstimates = [];
     trueIntegrals = [];
     errors = [];
-    
+    validSubdivisionFound = true; % To check if a valid subdivision was found
 
-    while length(subdivisions) - 1 < maxPoints
+
+    while (length(subdivisions) - 1 < maxPoints) && validSubdivisionFound
        
         [trapezoidalEstimates, trueIntegrals, errors] = updateEstimatesAndErrors(f, subdivisions);
       
         [~, maxErrorIdx] = max(errors);
         
 
-        if length(subdivisions) - 1 < maxPoints
-            newPoint = (subdivisions(maxErrorIdx) + subdivisions(maxErrorIdx + 1)) / 2;
-            subdivisions = sort([subdivisions, newPoint]);
-        else
-            break;
+        intervalSizes = diff(subdivisions);
+        maxIntervalSize = max(intervalSizes);
+        
+        validSubdivisionFound = false;
+        [~, errorSortedIndices] = sort(errors, 'descend'); % Sorting error indices in descending order
+
+        for idx = errorSortedIndices
+            newPoint = (subdivisions(idx) + subdivisions(idx + 1)) / 2;
+            newSubdivisions = sort([subdivisions, newPoint]);
+            
+            % Check the size of the new sub-intervals
+            newIntervalSizes = diff(newSubdivisions);
+            minNewIntervalSize = min(newIntervalSizes);
+
+            % Only accept the new subdivision if it is not more than 5 times smaller than the largest interval
+            if maxIntervalSize / minNewIntervalSize <= 3.5
+                subdivisions = newSubdivisions;
+                validSubdivisionFound = true;
+                break; % Exit loop after valid subdivision is found
+            end
+        end
+
+        if ~validSubdivisionFound
+            fprintf('No valid subdivisions found that satisfy the maximum size ratio constraint.\n');
+            break; % Exit while loop if no valid subdivisions can be found
         end
     end
+    
+
     
     % total relative error over whole domain
     totalEstimate = sum(trapezoidalEstimates);
@@ -30,7 +53,7 @@ function totalRelativeError = adaptiveTrapezoidalFixedNbPts(f, Emin, Emax, maxPo
 
 
 
-    adaptivePlot(f, subdivisions, Emin, Emax, 'true integral')
+    % adaptivePlot(f, subdivisions, Emin, Emax, 'true integral')
     
 end
 

@@ -1,10 +1,10 @@
-function [estimatedError, estimatedErrorWithEstimation] = adaptiveTrapezoidalSecondDerivative(f, energyPoints, maxPoints)
+function [estimatedError, estimatedErrorWithEstimation] = adaptiveQuadratureSimpson2(f, energyPoints, maxPoints)
     subdivisions = energyPoints;
     matchCounter = 0; % counter for matches
     validSubdivisionFound = true; % To check if a valid subdivision was found
 
     while (length(subdivisions) - 1 < maxPoints) && validSubdivisionFound
-        [estimates, errors, trueErrors] = updateEstimatesSecondDerivative(f, subdivisions);
+        [estimates, errors, trueErrors] = updateEstimatesSimpson(f, subdivisions);
         
         [~, maxErrorIdx] = max(errors);
         [~, maxTrueErrorIdx] = max(trueErrors);
@@ -45,6 +45,8 @@ function [estimatedError, estimatedErrorWithEstimation] = adaptiveTrapezoidalSec
     trueTotalIntegral = integral(f, energyPoints(1), energyPoints(length(energyPoints)));
     estimatedError = abs(totalEstimate - trueTotalIntegral) / trueTotalIntegral;
     estimatedErrorWithEstimation = max(errors);
+    adaptivePlot(f, subdivisions, energyPoints(1), energyPoints(length(energyPoints)), 'Adaptive Quadrature')
+
 end
 
 function [estimates, errors, trueErrors] = updateEstimatesSecondDerivative(f, subdivisions)
@@ -69,11 +71,28 @@ function [estimates, errors, trueErrors] = updateEstimatesSecondDerivative(f, su
     
 end
 
-function secondDeriv = estimateSecondDerivative(f, x)
-    h = 1e-4; % A small step for the second derivative approximation
-    secondDeriv = (f(x + h) - 2 * f(x) + f(x - h)) / h^2; % Second derivative estimation
+function [estimates, errors, trueErrors] = updateEstimatesSimpson(f, subdivisions)
+    numSubdivisions = length(subdivisions) - 1;
+    estimates = zeros(1, numSubdivisions);
+    errors = zeros(1, numSubdivisions);
+    trueErrors = zeros(1, numSubdivisions);
+    
+    for i = 1:numSubdivisions
+        a = subdivisions(i);
+        b = subdivisions(i+1);
+        m = (a + b) / 2;
+        simpsonEstimate = (b - a) / 6 * (f(a) + 4 * f(m) + f(b));
+        trapezoidalEstimate = (f(a) + f(b)) * (b - a) / 2;
+        
+        trueIntegral = integral(f, a, b);
+        
+        estimate = simpsonEstimate;
+        errorEstimate = abs(simpsonEstimate - trapezoidalEstimate) / 15; % Error estimate refinement
+        
+        estimates(i) = estimate;
+        errors(i) = errorEstimate;
+        trueErrors(i) = abs((estimate - trueIntegral) / trueIntegral);
+    end
 end
 
-function estimate = trapezoidalRule(f, a, b)
-    estimate = (f(a) + f(b)) * (b - a) / 2;
-end
+

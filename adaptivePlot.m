@@ -21,7 +21,7 @@ function adaptivePlot(f, subdivisions, Emin, Emax, methodName)
     % Finalize the plot
     hold off;
     grid on;
-    legend('Trapezoidal Approximation', 'Original Function', 'Location', 'Best');
+    legend('Trapezoidal Approximation', 'Location', 'Best');
     xlabel('x');
     ylabel('f(x)');
     title(['Adaptive Trapezoidal Rule with ',methodName]);

@@ -1,7 +1,9 @@
-function [estimatedError, matchCounter] = adaptiveTrapezoidalRichardson(f, Emin, Emax, maxPoints)
-    subdivisions = [Emin, Emax];
+function [estimatedError, estimatedErrorWithEstimation] = adaptiveTrapezoidalRichardson(f, energyPoints, maxPoints)
+    subdivisions = energyPoints;
     matchCounter = 0; 
-    while length(subdivisions) - 1 < maxPoints
+    validSubdivisionFound = true; % To check if a valid subdivision was found
+
+    while (length(subdivisions) - 1 < maxPoints) && validSubdivisionFound
         [estimates, errors, trueErrors] = updateEstimatesRichardson(f, subdivisions);
         
         [~, maxErrorIdx] = max(errors);
@@ -11,20 +13,44 @@ function [estimatedError, matchCounter] = adaptiveTrapezoidalRichardson(f, Emin,
             matchCounter = matchCounter + 1; 
         end
         
-        if length(subdivisions) - 1 < maxPoints
-            newPoint = (subdivisions(maxErrorIdx) + subdivisions(maxErrorIdx + 1)) / 2;
-            subdivisions = sort([subdivisions, newPoint]);
-        else
-            break;
+    
+        intervalSizes = diff(subdivisions);
+        maxIntervalSize = max(intervalSizes);
+        
+        validSubdivisionFound = false;
+        [~, errorSortedIndices] = sort(errors, 'descend'); % Sorting error indices in descending order
+
+        for idx = errorSortedIndices
+            newPoint = (subdivisions(idx) + subdivisions(idx + 1)) / 2;
+            newSubdivisions = sort([subdivisions, newPoint]);
+            
+            % Check the size of the new sub-intervals
+            newIntervalSizes = diff(newSubdivisions);
+            minNewIntervalSize = min(newIntervalSizes);
+
+            % Only accept the new subdivision if it is not more than 5 times smaller than the largest interval
+            if maxIntervalSize / minNewIntervalSize <= 0.1*maxPoints
+                subdivisions = newSubdivisions;
+                validSubdivisionFound = true;
+                break; % Exit loop after valid subdivision is found
+            end
+        end
+
+        if ~validSubdivisionFound
+            fprintf('No valid subdivisions found that satisfy the maximum size ratio constraint.\n');
+            break; % Exit while loop if no valid subdivisions can be found
         end
     end
     
+    
     totalEstimate = sum(estimates);
-    estimatedError = max(errors);
+    trueTotalIntegral=integral(f, energyPoints(1), energyPoints(length(energyPoints)));
+    estimatedError = abs(totalEstimate-trueTotalIntegral)/trueTotalIntegral;
+    estimatedErrorWithEstimation=max(errors);
     %trueTotal = integral(f, Emin, Emax);
     %totalRelativeError = abs((totalEstimate - trueTotal) / trueTotal);
     %adaptivePlot(subdivisions, f, totalEstimate, 'Richardson Estimation')
-    adaptivePlot(f, subdivisions, Emin, Emax, 'Richardson estimatiom')
+    % adaptivePlot(f, subdivisions, Emin, Emax, 'Richardson estimatiom')
 end
 
 function [estimates, errors, trueErrors] = updateEstimatesRichardson(f, subdivisions)

@@ -1,4 +1,4 @@
-function plotErrorEstimateAccuracy(f, energyPoints, k)
+function plotErrorEstimateAccuracy2(f, energyPoints, k)
     % Initialize arrays
     n_true = integral(f, energyPoints(1), energyPoints(end));
     richardsonRelativeErrors = zeros(size(k));
@@ -38,7 +38,7 @@ function plotErrorEstimateAccuracy(f, energyPoints, k)
 
         % Timing Second Derivative method
         tic;
-        [secondDerivativeEstimatedErrors(i), secondDerivativeEstimatedErrorWithEstimation(i)] = adaptiveTrapezoidalSecondDerivative3(f, energyPoints, maxPoints);
+        [secondDerivativeEstimatedErrors(i), secondDerivativeEstimatedErrorWithEstimation(i)] = adaptiveTrapezoidalSecondDerivative(f, energyPoints, maxPoints);
         timeSecondDerivative(i) = toc;
 
         % Timing Quadrature method
@@ -73,9 +73,9 @@ function plotErrorEstimateAccuracy(f, energyPoints, k)
     semilogy(k, NonAdaptiveError, '^-', 'Color', '#0072BD', 'DisplayName', 'Non-Adaptive True Error'); % Blue solid
     hold on;
     % semilogy(k, richardsonEstimatedErrors, 'o-', 'Color', '#008000', 'DisplayName', 'Richardson Estimated Error with true integral');
-    semilogy(k, secondDerivativeEstimatedErrors, '^-', 'Color', '#EDB120', 'DisplayName', 'Second Derivative Estimated Error with true integral');
-    semilogy(k, quadratureEstimatedErrors, 'o-', 'Color', '#D95319', 'DisplayName', 'Quadrature Estimated Error with true integral');
-    % semilogy(k, trueRelativeErrors, '-^', 'DisplayName', 'True Integral Error');
+    % semilogy(k, secondDerivativeEstimatedErrors, '^-', 'Color', '#EDB120', 'DisplayName', 'Second Derivative Estimated Error with true integral');
+    % semilogy(k, quadratureEstimatedErrors, 'o-', 'Color', '#D95319', 'DisplayName', 'Quadrature Estimated Error with true integral');
+    semilogy(k, trueRelativeErrors, '-^', 'DisplayName', 'Perfect Adaptive Error');
     % semilogy(k, RichardsonEstimatedErrorWithEstimation, '-s', 'DisplayName', 'Richardson Estimated Error');
     % semilogy(k, secondDerivativeEstimatedErrorWithEstimation, '^--', 'Color', '#EDB120','DisplayName', 'Second Derivative Estimated Error');
     % semilogy(k, quadratureEstimatedErrorWithEstimation, 'o--', 'Color', '#D95319' ,'DisplayName', 'Quadrature Estimated Error');

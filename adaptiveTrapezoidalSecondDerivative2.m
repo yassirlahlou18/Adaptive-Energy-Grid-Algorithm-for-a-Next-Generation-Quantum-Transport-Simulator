@@ -1,6 +1,7 @@
-function [estimatedError, estimatedErrorWithEstimation] = adaptiveTrapezoidalSecondDerivative(f, energyPoints, maxPoints)
+function [estimatedError, estimatedErrorWithEstimation, subdivisions, functionValues] = adaptiveTrapezoidalSecondDerivative2(f, energyPoints, maxPoints)
     subdivisions = energyPoints;
-    matchCounter = 0; % counter for matches
+    functionValues = f(energyPoints); % Initialize function values at initial points
+    matchCounter = 0; % Counter for matches
     validSubdivisionFound = true; % To check if a valid subdivision was found
 
     while (length(subdivisions) - 1 < maxPoints) && validSubdivisionFound
@@ -22,14 +23,16 @@ function [estimatedError, estimatedErrorWithEstimation] = adaptiveTrapezoidalSec
         for idx = errorSortedIndices
             newPoint = (subdivisions(idx) + subdivisions(idx + 1)) / 2;
             newSubdivisions = sort([subdivisions, newPoint]);
+            newFunctionValues = f(newSubdivisions); % Get function values at new subdivisions
             
             % Check the size of the new sub-intervals
             newIntervalSizes = diff(newSubdivisions);
             minNewIntervalSize = min(newIntervalSizes);
 
             % Only accept the new subdivision if it is not more than 5 times smaller than the largest interval
-            if maxIntervalSize / minNewIntervalSize <= 0.1*maxPoints
+            if maxIntervalSize / minNewIntervalSize <= 0.1 * maxPoints
                 subdivisions = newSubdivisions;
+                functionValues = newFunctionValues; % Update function values with new points
                 validSubdivisionFound = true;
                 break; % Exit loop after valid subdivision is found
             end
@@ -51,27 +54,26 @@ function [estimates, errors, trueErrors] = updateEstimatesSecondDerivative(f, su
     numSubdivisions = length(subdivisions) - 1;
     estimates = zeros(1, numSubdivisions);
     errors = zeros(1, numSubdivisions);
-    trueErrors = zeros(1, numSubdivisions); % true errors
+    trueErrors = zeros(1, numSubdivisions); % True errors
     
     for i = 1:numSubdivisions
         a = subdivisions(i);
-        b = subdivisions(i+1);
+        b = subdivisions(i + 1);
         estimate = trapezoidalRule(f, a, b);
         trueIntegral = integral(f, a, b);
         
         secondDerivativeEstimate = estimateSecondDerivative(f, (a + b) / 2);
-        errorEstimate = ((b - a)^3 / 12) * abs(secondDerivativeEstimate);
+        errorEstimate = ((b - a) ^ 3 / 12) * abs(secondDerivativeEstimate);
         
         estimates(i) = estimate;
         errors(i) = errorEstimate;
         trueErrors(i) = abs((estimate - trueIntegral) / trueIntegral);
     end
-    
 end
 
 function secondDeriv = estimateSecondDerivative(f, x)
     h = 1e-4; % A small step for the second derivative approximation
-    secondDeriv = (f(x + h) - 2 * f(x) + f(x - h)) / h^2; % Second derivative estimation
+    secondDeriv = (f(x + h) - 2 * f(x) + f(x - h)) / h ^ 2; % Second derivative estimation
 end
 
 function estimate = trapezoidalRule(f, a, b)
