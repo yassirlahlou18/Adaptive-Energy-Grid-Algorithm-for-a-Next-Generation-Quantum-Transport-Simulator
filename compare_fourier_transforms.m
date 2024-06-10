@@ -35,7 +35,7 @@ function compare_fourier_transforms()
     
     % Important to select the same column as before for comparison
     column_adapt = GR_adapt(:, 1);
-    fprintf('Dimensions of column: %d x %d\n', size(GR_adapt, 1), size(GR_adapt, 2));
+    fprintf('Dimensions of GR_adapt: %d x %d\n', size(GR_adapt, 1), size(GR_adapt, 2));
 
     % fft on the fine grid
     % nufft on the adaptive grid
@@ -46,10 +46,12 @@ function compare_fourier_transforms()
 
     N_F_fine=abs(F_fine);
     N_F_fine=N_F_fine-min(N_F_fine);
+
     N_F_Adapt=abs(F_adapt);
     N_F_Adapt=N_F_Adapt-min(N_F_Adapt);
-    % scale=max(N_F_Adapt)/max(N_F_fine);
-    % N_F_fine=N_F_fine*scale;
+
+    scale=max(N_F_Adapt)/max(N_F_fine);
+    N_F_fine=N_F_fine*scale;
     
     % Plot
     figure;
