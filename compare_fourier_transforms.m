@@ -111,6 +111,8 @@ function compare_fourier_transforms()
     [~, F_GG_fine] = perform_nufft_selectgrid(column_GG_fine, E_fine, length(column_GG_fine), dE);
     
     % Perform NUFFT on the adaptive grid
+    % increase length of k space to avoid copies in energy domain, min(dE)
+    % for good NUFFT representation.
     [k_adapt, F_GL_adapt] = perform_nufft_selectgrid(column_GL_adapt, E_adapt2, 6 * length(column_GL_adapt), min(dE_adapt2));
     [~, F_GG_adapt] = perform_nufft_selectgrid(column_GG_adapt, E_adapt2, 6 * length(column_GG_adapt), min(dE_adapt2));
     
